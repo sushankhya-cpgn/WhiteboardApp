@@ -4,11 +4,13 @@ import { IoIosColorPalette } from "react-icons/io";
 import { Canvas } from "../components/Canvas";
 import { SidebarOptions } from "../components/SidebarOptions";
 import { Navbar } from "../components/Navbar";
+import MessageBox from "../components/MessageBox";
 
 function DrawingPage() {
   const [active, setActive] = useState(0); // Default to "Pen" tool
   const [color, setColor] = useState("#000000");
   const [undo, setUndo] = useState(false);
+
   const sidebarOptions = [
     { icon: <FaPen />, label: "Pen", toolId: 0 },
     { icon: <FaEraser />, label: "Eraser", toolId: 1 },
@@ -49,6 +51,7 @@ function DrawingPage() {
           <Canvas activeTool={active} undo={undo}>
             {color}
           </Canvas>
+          <MessageBox />
         </section>
       </main>
     </div>
