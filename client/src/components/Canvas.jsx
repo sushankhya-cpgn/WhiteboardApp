@@ -1,4 +1,7 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
+import UserContext from "../context/userContext";
+import { useNavigate } from "react-router";
+import axios from "axios";
 
 export function Canvas({ activeTool, children }) {
   const canvasRef = useRef(null);
@@ -7,6 +10,34 @@ export function Canvas({ activeTool, children }) {
   // const [drawingArray, setDrawingArray] = useState([contextRef.current]);
   const points = useRef([]);
   const path = useRef([]);
+  const { user, login } = useContext(UserContext);
+  const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const URL = "http://127.0.0.1:4000/api/v1/users/token";
+        const response = await axios.get(URL, { withCredentials: true });
+        const user = response.data;
+        console.log(user);
+        login(user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!user && !loading) {
+      navigate("/");
+    }
+  }, [user, navigate, loading]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
