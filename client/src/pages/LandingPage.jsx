@@ -1,29 +1,62 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Login from "../components/Login";
+import { useNavigate } from "react-router";
+import FormLayout from "../components/FormLayout";
+import Button from "../components/Button";
+import UserContext from "../context/userContext";
+import useFetch from "../utils/useFetch";
 
 function LandingPage() {
-  const [toggleLogin, settogglelogin] = useState(false);
-  function handleClick() {
-    settogglelogin((l) => !l);
+  const [create, setCreate] = useState(false);
+  const navigate = useNavigate();
+  const [toggle, setToggle] = useState(false);
+  const [join, setJoin] = useState(false);
+  const { user, login } = useContext(UserContext);
+  const { response, loading } = useFetch();
+
+  useEffect(() => {
+    if (response) {
+      console.log(response);
+      login(response.data.data);
+    } else {
+      console.log("No response");
+    }
+  }, [response, login]);
+
+  if (loading) {
+    return <p className="text-center">Loading....</p>;
+  }
+
+  function createMeeting() {
+    navigate("/meeting");
+  }
+
+  function joinRoom() {
+    setJoin((jr) => !jr);
+  }
+
+  function close_modals() {
+    setToggle(false);
+    setCreate(false);
+    setJoin(false);
   }
   return (
     <>
       <div
         className={`min-h-screen bg-gray-100 ${
-          toggleLogin ? "opacity-30" : ""
+          toggle || create || join ? "opacity-30" : ""
         }`}
-        onClick={toggleLogin ? () => settogglelogin((l) => !l) : undefined}
+        onClick={toggle || create || join ? close_modals : undefined}
       >
         {/* Navbar */}
         <header className="bg-white shadow-md py-4">
           <div className="container mx-auto px-4 flex justify-between items-center">
             <h1 className="text-xl font-bold text-gray-800">Whiteboard Co.</h1>
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded-md"
-              onClick={handleClick}
-            >
-              Login
-            </button>
+            {!user ? (
+              <Button onClick={() => setToggle(true)}>Login</Button>
+            ) : (
+              <p>Hello {user.name}</p>
+            )}
           </div>
         </header>
 
@@ -36,12 +69,8 @@ function LandingPage() {
                 Unleash your creativity with collaborative whiteboards.
               </p>
               <div className="space-x-4">
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-md">
-                  Create a room
-                </button>
-                <button className="bg-gray-600 text-white px-6 py-3 rounded-md">
-                  Join a room
-                </button>
+                <Button onClick={createMeeting}>Create a room</Button>
+                <Button onClick={() => setJoin(true)}>Join a room</Button>
               </div>
             </div>
             <div className="mt-8 lg:mt-0">
@@ -98,10 +127,16 @@ function LandingPage() {
           </div>
         </section>
       </div>
-      {toggleLogin && (
-        <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 w-96 flex flex-row justify-center">
-          <Login settogglelogin={settogglelogin} />
-        </div>
+      {toggle && (
+        <FormLayout>
+          <Login settogglelogin={setToggle} />
+        </FormLayout>
+      )}
+      {create && (
+        <FormLayout>
+          {" "}
+          <div>Room with Room ID {} created</div>
+        </FormLayout>
       )}
     </>
   );

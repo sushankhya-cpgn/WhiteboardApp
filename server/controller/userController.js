@@ -6,13 +6,14 @@ const get_token = (id) => {
   const token = jwt.sign(id, process.env.TOKEN_SECRET, {
     expiresIn: process.env.TOKEN_EXPIRE,
   });
+
   return token;
 };
 
 exports.getUserByToken = async function getUserByToken(req, res) {
   try {
-    const authtoken = req.cookies.token;
-    console.log("above request cookie");
+    const authtoken = req.headers.auth;
+
     console.log(authtoken);
     const decoded = jwt.verify(authtoken, process.env.TOKEN_SECRET);
 
@@ -26,7 +27,7 @@ exports.getUserByToken = async function getUserByToken(req, res) {
 
 exports.protect = async function protect(req, res, next) {
   try {
-    const token = req.cookies.token;
+    const token = req.headers["Auth"];
     if (!token) throw new Error("No token provided");
 
     const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
@@ -54,12 +55,13 @@ exports.login = async function login(req, res) {
         if (await bcrypt.compare(password, user.password)) {
           const id = user._id.toString();
           const token = get_token({ id });
-          console.log("token sent in response", token);
-          res.cookie("token", token, {
-            httpOnly: true,
-            secure: false, // Set to true if you are using HTTPS
-            sameSite: "None", // This is important for cross-origin requests
-          });
+          // console.log("token sent in response", token);
+          // res.cookie("token", token, {
+          //   maxAge: 24 * 60 * 60 * 1000,
+          //   httpOnly: true,
+          //   secure: false, // Set to true if you are using HTTPS
+          //   sameSite: "None", // This is important for cross-origin requests
+          // });
 
           res.status(200).json({
             status: "success",
@@ -67,6 +69,7 @@ exports.login = async function login(req, res) {
             data: {
               name: user.name,
               email: user.email,
+              token: token,
             },
           });
         } else {
