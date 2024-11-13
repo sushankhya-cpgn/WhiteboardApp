@@ -9,7 +9,7 @@ import useFetch from "../utils/useFetch";
 function LandingPage() {
   const navigate = useNavigate();
   const [toggle, setToggle] = useState(false);
-  const { user, login, setUser } = useContext(UserContext);
+  const { user, login } = useContext(UserContext);
   const { response, loading } = useFetch();
 
   useEffect(() => {
@@ -45,7 +45,7 @@ function LandingPage() {
   }
   function logout() {
     localStorage.removeItem("token");
-    setUser(null);
+    window.location.replace("/");
   }
   return (
     <>

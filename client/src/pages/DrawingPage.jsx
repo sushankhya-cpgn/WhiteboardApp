@@ -7,6 +7,7 @@ import { Navbar } from "../components/Navbar";
 import MessageBox from "../components/MessageBox";
 import useFetch from "../utils/useFetch";
 import UserContext from "../context/userContext";
+import { useNavigate } from "react-router";
 
 function DrawingPage() {
   const [active, setActive] = useState(0); // Default to "Pen" tool
@@ -17,6 +18,7 @@ function DrawingPage() {
   const [socket, setSocket] = useState(null);
   const [pc, setPc] = useState(null);
   const videoref = useRef(null);
+  const navigate = useNavigate();
 
   const getCameraStreamAndSend = (pc) => {
     navigator.mediaDevices
@@ -31,6 +33,11 @@ function DrawingPage() {
         });
       });
   };
+  useEffect(() => {
+    if (!user && !loading) {
+      navigate("/");
+    }
+  }, [user, navigate, loading]);
 
   useEffect(() => {
     if (response) {
@@ -91,7 +98,7 @@ function DrawingPage() {
             );
           }
         };
-        getCameraStreamAndSend(pc);
+        user && getCameraStreamAndSend(pc);
       }
     }
 

@@ -1,12 +1,14 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import UserContext from "../context/userContext";
 
 function useFetch() {
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useContext(UserContext);
+  const token = localStorage.getItem("token");
   useEffect(() => {
     async function fetchData() {
-      const token = localStorage.getItem("token");
       console.log(token);
       try {
         const URL = "http://127.0.0.1:4000/api/v1/users/token";
@@ -22,7 +24,8 @@ function useFetch() {
         setLoading(false);
       }
     }
-    fetchData();
+    token && fetchData();
+    setLoading(false);
   }, []);
   return { response, loading };
 }

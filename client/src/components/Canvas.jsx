@@ -7,35 +7,8 @@ export function Canvas({ activeTool, children }) {
   const canvasRef = useRef(null);
   let contextRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  // const [drawingArray, setDrawingArray] = useState([contextRef.current]);
   const points = useRef([]);
   const path = useRef([]);
-  const { user, login } = useContext(UserContext);
-  const { response, loading } = useFetch();
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        if (response) {
-          const user = response.data.data;
-          console.log(user);
-          login(user);
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    }
-
-    fetchData();
-  }, [response, login]);
-
-  useEffect(() => {
-    if (!user && !loading) {
-      navigate("/");
-    }
-  }, [user, navigate, loading]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
