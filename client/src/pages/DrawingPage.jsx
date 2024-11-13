@@ -19,15 +19,17 @@ function DrawingPage() {
   const videoref = useRef(null);
 
   const getCameraStreamAndSend = (pc) => {
-    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-      if (videoref.current) {
-        videoref.current.srcObject = stream;
-        videoref.current.play();
-      }
-      stream.getTracks().forEach((track) => {
-        pc?.addTrack(track);
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: true })
+      .then((stream) => {
+        if (videoref.current) {
+          videoref.current.srcObject = stream;
+          videoref.current.play();
+        }
+        stream.getTracks().forEach((track) => {
+          pc?.addTrack(track);
+        });
       });
-    });
   };
 
   useEffect(() => {
@@ -141,7 +143,11 @@ function DrawingPage() {
             {color}
           </Canvas>
           <MessageBox />
-          <video ref={videoref} className=" h-40  absolute bottom-0 left-0" />
+          <video
+            ref={videoref}
+            className=" h-40  absolute bottom-0 left-0"
+            muted={true}
+          />
 
           {/* <button onClick={initiateConn}>Send Data</button> */}
         </section>

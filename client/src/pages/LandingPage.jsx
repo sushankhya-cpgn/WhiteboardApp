@@ -7,11 +7,9 @@ import UserContext from "../context/userContext";
 import useFetch from "../utils/useFetch";
 
 function LandingPage() {
-  const [create, setCreate] = useState(false);
   const navigate = useNavigate();
   const [toggle, setToggle] = useState(false);
-  const [join, setJoin] = useState(false);
-  const { user, login } = useContext(UserContext);
+  const { user, login, setUser } = useContext(UserContext);
   const { response, loading } = useFetch();
 
   useEffect(() => {
@@ -28,25 +26,32 @@ function LandingPage() {
   }
 
   function createMeeting() {
-    navigate("/meeting");
+    if (user) {
+      navigate("/meeting");
+    } else {
+      setToggle(true);
+    }
   }
 
-  function joinRoom() {
-    setJoin((jr) => !jr);
+  function joinMeeting() {
+    if (user) {
+      navigate("/receivestream");
+    } else {
+      setToggle(true);
+    }
   }
-
   function close_modals() {
     setToggle(false);
-    setCreate(false);
-    setJoin(false);
+  }
+  function logout() {
+    localStorage.removeItem("token");
+    setUser(null);
   }
   return (
     <>
       <div
-        className={`min-h-screen bg-gray-100 ${
-          toggle || create || join ? "opacity-30" : ""
-        }`}
-        onClick={toggle || create || join ? close_modals : undefined}
+        className={`min-h-screen bg-gray-100 ${toggle ? "opacity-30" : ""}`}
+        onClick={toggle ? close_modals : undefined}
       >
         {/* Navbar */}
         <header className="bg-white shadow-md py-4">
@@ -55,7 +60,10 @@ function LandingPage() {
             {!user ? (
               <Button onClick={() => setToggle(true)}>Login</Button>
             ) : (
-              <p>Hello {user.name}</p>
+              <div className="flex flex-row gap-4">
+                <p>Hello {user.name}</p>
+                <Button onClick={logout}>Logout</Button>
+              </div>
             )}
           </div>
         </header>
@@ -69,8 +77,8 @@ function LandingPage() {
                 Unleash your creativity with collaborative whiteboards.
               </p>
               <div className="space-x-4">
-                <Button onClick={createMeeting}>Create a room</Button>
-                <Button onClick={() => setJoin(true)}>Join a room</Button>
+                <Button onClick={createMeeting}>Create Meeting</Button>
+                <Button onClick={joinMeeting}>Join a meeting</Button>
               </div>
             </div>
             <div className="mt-8 lg:mt-0">
@@ -130,12 +138,6 @@ function LandingPage() {
       {toggle && (
         <FormLayout>
           <Login settogglelogin={setToggle} />
-        </FormLayout>
-      )}
-      {create && (
-        <FormLayout>
-          {" "}
-          <div>Room with Room ID {} created</div>
         </FormLayout>
       )}
     </>
