@@ -2,27 +2,8 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const app = require("./app");
 const { WebSocket, WebSocketServer } = require("ws");
-// const http = require("http");
-// const { Server } = require("socket.io");
 
 dotenv.config({ path: "./config.env" });
-
-// const server = http.createServer(app);
-
-// const io = new Server(server, {
-//   cors: {
-//     origin: "http://localhost:5173",
-//     credentials: true,
-//     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
-//   },
-// });
-
-// io.on("connection", (socket) => {
-//   console.log(`User connected with user Id ${socket.id}`);
-//   socket.on("send_message", (data) => {
-//     io.sockets.emit("receive_message", data);
-//   });
-// });
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -31,7 +12,7 @@ const wss = new WebSocketServer({ port: 8080 });
 const rooms = [];
 
 let senderSocket = null;
-let receiverSocket = [];
+let receiverSocket = null;
 
 wss.on("connection", function connection(ws) {
   ws.on("error", console.error);
@@ -41,33 +22,34 @@ wss.on("connection", function connection(ws) {
     if (message.type === "sender") {
       senderSocket = ws;
     } else if (message.type === "receiver") {
-      // receiverSocket = ws;
-      receiverSocket.push(ws);
+      receiverSocket = ws;
     } else if (message.type === "createOffer") {
+      console.log("createOffer Received");
       if (ws !== senderSocket) {
         return;
       }
-      receiverSocket.forEach((r) => {
-        r.send(JSON.stringify({ type: "createOffer", sdp: message.sdp }));
-      });
+      receiverSocket?.send(
+        JSON.stringify({ type: "createOffer", sdp: message.sdp })
+      );
     } else if (message.type === "createAnswer") {
-      if (!receiverSocket.includes(ws)) {
+      console.log("createAnswer Received");
+      if (receiverSocket === ws) {
         return;
       }
       senderSocket?.send(
         JSON.stringify({ type: "createAnswer", sdp: message.sdp })
       );
     } else if (message.type === "iceCandidate") {
+      console.log("ice candidate received from sender");
       if (ws === senderSocket) {
-        receiverSocket.forEach((r) => {
-          r.send(
-            JSON.stringify({
-              type: "iceCandidate",
-              candidate: message.candidate,
-            })
-          );
-        });
-      } else if (receiverSocket.includes(ws)) {
+        receiverSocket?.send(
+          JSON.stringify({
+            type: "iceCandidate",
+            candidate: message.candidate,
+          })
+        );
+      } else if (ws === receiverSocket) {
+        console.log("ice candidate received from receiver");
         senderSocket?.send(
           JSON.stringify({ type: "iceCandidate", candidate: message.candidate })
         );

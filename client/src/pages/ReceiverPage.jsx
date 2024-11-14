@@ -1,7 +1,50 @@
-import React from "react";
+import { useEffect } from "react";
 
-function ReceiverPage() {
-  return <div>Receiver</div>;
-}
+export const Receiver = () => {
+  useEffect(() => {
+    const socket = new WebSocket("ws://localhost:8080");
+    socket.onopen = () => {
+      socket.send(
+        JSON.stringify({
+          type: "receiver",
+        })
+      );
+    };
+    startReceiving(socket);
+  }, []);
 
-export default ReceiverPage;
+  function startReceiving(socket) {
+    const video = document.createElement("video");
+    document.body.appendChild(video);
+
+    const pc = new RTCPeerConnection();
+    pc.ontrack = (event) => {
+      video.srcObject = new MediaStream([event.track]);
+      video.muted = true;
+      video.play();
+    };
+
+    socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === "createOffer") {
+        pc.setRemoteDescription(message.sdp).then(() => {
+          pc.createAnswer().then((answer) => {
+            pc.setLocalDescription(answer);
+            socket.send(
+              JSON.stringify({
+                type: "createAnswer",
+                sdp: answer,
+              })
+            );
+          });
+        });
+      } else if (message.type === "iceCandidate") {
+        pc.addIceCandidate(message.candidate);
+      }
+    };
+  }
+
+  return <div></div>;
+};
+
+export default Receiver;

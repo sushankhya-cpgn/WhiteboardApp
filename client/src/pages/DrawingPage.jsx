@@ -20,8 +20,21 @@ function DrawingPage() {
   const videoref = useRef(null);
   const navigate = useNavigate();
 
-  const getCameraStreamAndSend = (pc) => {
-    navigator.mediaDevices
+  // async function captureScreen() {
+  //   let mediaStream = null;
+  //   try {
+  //     await navigator.mediaDevices.getDisplayMedia({
+  //       video: true,
+  //       audio: false,
+  //     });
+  //     videoref.current.srcObjet = mediaStream;
+  //   } catch (err) {
+  //     console.log("Error", err);
+  //   }
+  // }
+
+  const getCameraStreamAndSend = async (pc) => {
+    await navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         if (videoref.current) {
@@ -79,14 +92,7 @@ function DrawingPage() {
         };
         const pc = new RTCPeerConnection();
         setPc(pc);
-        pc.onnegotiationneeded = async () => {
-          console.log("NEGOTIATION NEEDED");
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          socket?.send(
-            JSON.stringify({ type: "createOffer", sdp: pc.localDescription })
-          );
-        };
+
         pc.onicecandidate = (event) => {
           console.log("on ice reaccheds");
           if (event.candidate) {
@@ -97,6 +103,14 @@ function DrawingPage() {
               })
             );
           }
+        };
+        pc.onnegotiationneeded = async () => {
+          console.log("NEGOTIATION NEEDED");
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket?.send(
+            JSON.stringify({ type: "createOffer", sdp: pc.localDescription })
+          );
         };
         user && getCameraStreamAndSend(pc);
       }
@@ -154,6 +168,7 @@ function DrawingPage() {
             ref={videoref}
             className=" h-40  absolute bottom-0 left-0"
             muted={true}
+            autoPlay
           />
 
           {/* <button onClick={initiateConn}>Send Data</button> */}
