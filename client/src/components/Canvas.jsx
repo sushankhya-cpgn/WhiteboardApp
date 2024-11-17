@@ -1,7 +1,4 @@
-import { useRef, useState, useEffect, useContext } from "react";
-import UserContext from "../context/userContext";
-import { useNavigate } from "react-router";
-import useFetch from "../utils/useFetch";
+import { useRef, useState, useEffect } from "react";
 
 export function Canvas({ activeTool, children }) {
   const canvasRef = useRef(null);

@@ -1,6 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import getCameraStreamAndSend from "../utils/getCameraStreamandSend";
+import MessageBox from "../components/MessageBox";
+import { Canvas } from "../components/Canvas";
+import SideBar from "../components/SideBar";
+import { Navbar } from "../components/Navbar";
 
 export const Receiver = () => {
+  const [active, setActive] = useState(0);
+  const [color, setColor] = useState("#000000");
+  const [undo, setUndo] = useState(false);
+  const videoRef = useRef(null);
+  const receivervideoref = useRef(null);
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:8080");
     socket.onopen = () => {
@@ -11,17 +21,18 @@ export const Receiver = () => {
       );
     };
     startReceiving(socket);
+    return () => {
+      socket.close();
+    };
   }, []);
 
   function startReceiving(socket) {
-    const video = document.createElement("video");
-    document.body.appendChild(video);
-
     const pc = new RTCPeerConnection();
+
     pc.ontrack = (event) => {
-      video.srcObject = new MediaStream([event.track]);
-      video.muted = true;
-      video.play();
+      videoRef.current.srcObject = new MediaStream([event.track]);
+      videoRef.current.muted = true;
+      videoRef.current.play();
     };
 
     socket.onmessage = (event) => {
@@ -42,9 +53,41 @@ export const Receiver = () => {
         pc.addIceCandidate(message.candidate);
       }
     };
+    getCameraStreamAndSend(pc, receivervideoref);
   }
 
-  return <div></div>;
+  return (
+    <div className="flex flex-col bg-gray-100 h-screen">
+      {/* Header */}
+      <Navbar />
+
+      {/* Main Content */}
+      <main className="flex h-full">
+        {/* Sidebar */}
+        <SideBar
+          active={active}
+          setActive={setActive}
+          color={color}
+          setUndo={setUndo}
+          setColor={setColor}
+        />
+
+        {/* Drawing Canvas */}
+        <section className="flex-1 bg-gray-50 ">
+          <Canvas activeTool={active} undo={undo}>
+            {color}
+          </Canvas>
+          <MessageBox />
+          <video
+            ref={videoRef}
+            className=" h-40  absolute bottom-0 left-0"
+            muted={true}
+            autoPlay
+          />
+        </section>
+      </main>
+    </div>
+  );
 };
 
 export default Receiver;
