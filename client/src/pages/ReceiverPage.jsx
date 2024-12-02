@@ -9,6 +9,7 @@ export const Receiver = () => {
   const [active, setActive] = useState(0);
   const [color, setColor] = useState("#000000");
   const [undo, setUndo] = useState(false);
+  const [receivedpath, setReceivedpath] = useState(null);
   const videoRef = useRef(null);
   const receivervideoref = useRef(null);
   useEffect(() => {
@@ -51,6 +52,8 @@ export const Receiver = () => {
         });
       } else if (message.type === "iceCandidate") {
         pc.addIceCandidate(message.candidate);
+      } else if (message.type === "drawingdata") {
+        setReceivedpath(message.data);
       }
     };
     getCameraStreamAndSend(pc, receivervideoref);
@@ -74,7 +77,7 @@ export const Receiver = () => {
 
         {/* Drawing Canvas */}
         <section className="flex-1 bg-gray-50 ">
-          <Canvas activeTool={active} undo={undo}>
+          <Canvas activeTool={active} undo={undo} receivedpath={receivedpath}>
             {color}
           </Canvas>
           <MessageBox />

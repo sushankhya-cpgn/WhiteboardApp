@@ -28,8 +28,14 @@ wss.on("connection", function connection(ws) {
       } else if (message.type === "receiver") {
         receiverSocket = ws;
         console.log("Receiver socket registered.");
+      } else if (message.type === "senderDrawingdata") {
+        console.log(" path is", message.path);
+        receiverSocket?.send(
+          JSON.stringify({ type: "drawingdata", data: message.path })
+        );
       } else if (message.type === "createOffer") {
         console.log("createOffer Received:", message.sdp);
+
         if (ws !== senderSocket) {
           console.warn("Unauthorized sender for createOffer.");
           return;

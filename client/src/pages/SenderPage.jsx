@@ -8,7 +8,7 @@ import { useNavigate } from "react-router";
 import getCameraStreamAndSend from "../utils/getCameraStreamandSend";
 import SideBar from "../components/SideBar";
 
-function DrawingPage() {
+function SenderPage() {
   // Default to "Pen" tool
   const [active, setActive] = useState(0);
   const [color, setColor] = useState("#000000");
@@ -118,7 +118,7 @@ function DrawingPage() {
 
         {/* Drawing Canvas */}
         <section className="flex-1 bg-gray-50 ">
-          <Canvas activeTool={active} undo={undo}>
+          <Canvas activeTool={active} undo={undo} socket={socket}>
             {color}
           </Canvas>
           <MessageBox />
@@ -134,4 +134,4 @@ function DrawingPage() {
   );
 }
 
-export default DrawingPage;
+export default SenderPage;

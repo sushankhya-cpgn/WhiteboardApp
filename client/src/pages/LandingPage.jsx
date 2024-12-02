@@ -5,12 +5,14 @@ import FormLayout from "../components/FormLayout";
 import Button from "../components/Button";
 import UserContext from "../context/userContext";
 import useFetch from "../utils/useFetch";
+import axios from "axios";
 
 function LandingPage() {
   const navigate = useNavigate();
   const [toggle, setToggle] = useState(false);
   const { user, login } = useContext(UserContext);
   const { response, loading } = useFetch();
+  const [joinroom, setJoinroom] = useState();
 
   useEffect(() => {
     if (response) {
@@ -25,17 +27,45 @@ function LandingPage() {
     return <p className="text-center">Loading....</p>;
   }
 
-  function createMeeting() {
+  function uuidv4() {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function (c) {
+        const r = (Math.random() * 16) | 0,
+          v = c == "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      }
+    );
+  }
+
+  async function createMeeting() {
     if (user) {
-      navigate("/meeting");
+      const url = "http://127.0.0.1:4000/api/v1/room/createroom";
+      const uuid = uuidv4();
+      const response = await axios.post(url, {
+        roomid: uuid,
+      });
+      if (response) {
+        navigate("/meeting");
+      }
     } else {
       setToggle(true);
     }
   }
 
-  function joinMeeting() {
-    if (user) {
+  async function checkroomid(e) {
+    const url = "http://127.0.0.1:4000/api/v1/room/joinroom";
+    const response = await axios.post(url, {
+      roomId: e.target.value,
+    });
+    if (response) {
       navigate("/receivestream");
+    }
+  }
+
+  async function joinMeeting() {
+    if (user) {
+      setJoinroom(true);
     } else {
       setToggle(true);
     }
@@ -138,6 +168,20 @@ function LandingPage() {
       {toggle && (
         <FormLayout>
           <Login settogglelogin={setToggle} />
+        </FormLayout>
+      )}
+      {joinroom && (
+        <FormLayout>
+          <div className="h-10 ">
+            Join room
+            <input
+              type="text"
+              className=" m-4 border-black bg-slate-50"
+            ></input>
+            <button type="submit" onClick={checkroomid}>
+              Submit
+            </button>
+          </div>
         </FormLayout>
       )}
     </>

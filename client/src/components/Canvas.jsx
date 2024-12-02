@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 
-export function Canvas({ activeTool, children }) {
+export function Canvas({ activeTool, children, socket, receivedpath }) {
   const canvasRef = useRef(null);
   let contextRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -23,6 +23,10 @@ export function Canvas({ activeTool, children }) {
       window.removeEventListener("resize", resizeCanvas);
     };
   }, []);
+  // function drawreceived(){
+  //   contextRef.current.beginPath();
+
+  // }
 
   function startDrawing(e) {
     setIsDrawing(true);
@@ -37,6 +41,9 @@ export function Canvas({ activeTool, children }) {
     }
 
     points.current = [];
+    socket.send(
+      JSON.stringify({ type: "senderDrawingdata", data: path.current })
+    );
     contextRef.current.beginPath();
   }
 
