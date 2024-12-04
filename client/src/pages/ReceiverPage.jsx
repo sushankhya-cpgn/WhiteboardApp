@@ -10,10 +10,12 @@ export const Receiver = () => {
   const [color, setColor] = useState("#000000");
   const [undo, setUndo] = useState(false);
   const [receivedpath, setReceivedpath] = useState(null);
+  const [socket, setSocket] = useState(null);
   const videoRef = useRef(null);
   const receivervideoref = useRef(null);
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8080");
+    const socket = new WebSocket("ws://127.0.0.1:8080");
+    setSocket(() => socket);
     socket.onopen = () => {
       socket.send(
         JSON.stringify({
@@ -80,7 +82,7 @@ export const Receiver = () => {
           <Canvas activeTool={active} undo={undo} receivedpath={receivedpath}>
             {color}
           </Canvas>
-          <MessageBox />
+          <MessageBox socket={socket} />
           <video
             ref={videoRef}
             className=" h-40  absolute bottom-0 left-0"

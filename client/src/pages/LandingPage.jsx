@@ -45,6 +45,7 @@ function LandingPage() {
       const response = await axios.post(url, {
         roomid: uuid,
       });
+      alert(uuid);
       if (response) {
         navigate("/meeting");
       }
@@ -72,6 +73,7 @@ function LandingPage() {
   }
   function close_modals() {
     setToggle(false);
+    setJoinroom(false);
   }
   function logout() {
     localStorage.removeItem("token");
@@ -80,8 +82,10 @@ function LandingPage() {
   return (
     <>
       <div
-        className={`min-h-screen bg-gray-100 ${toggle ? "opacity-30" : ""}`}
-        onClick={toggle ? close_modals : undefined}
+        className={`min-h-screen bg-gray-100 ${
+          toggle || joinroom ? "opacity-30" : ""
+        }`}
+        onClick={toggle || joinroom ? close_modals : undefined}
       >
         {/* Navbar */}
         <header className="bg-white shadow-md py-4">
@@ -172,16 +176,13 @@ function LandingPage() {
       )}
       {joinroom && (
         <FormLayout>
-          <div className="h-10 ">
-            Join room
-            <input
-              type="text"
-              className=" m-4 border-black bg-slate-50"
-            ></input>
-            <button type="submit" onClick={checkroomid}>
-              Submit
-            </button>
-          </div>
+          <h1 className=" text-center">Join room</h1>
+          <input
+            type="text"
+            className=" m-4 border-black bg-slate-50"
+            placeholder="Enter room code"
+          ></input>
+          <Button onClick={checkroomid}>Submit</Button>
         </FormLayout>
       )}
     </>

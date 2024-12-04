@@ -17,6 +17,7 @@ function SenderPage() {
   const { response, loading } = useFetch();
   const [socket, setSocket] = useState(null);
   const [pc, setPc] = useState(null);
+  const [txtmsg, setTxtmsg] = useState("");
   const videoref = useRef(null);
   const receivervideoref = useRef(null);
   const navigate = useNavigate();
@@ -121,7 +122,7 @@ function SenderPage() {
           <Canvas activeTool={active} undo={undo} socket={socket}>
             {color}
           </Canvas>
-          <MessageBox />
+          <MessageBox socket={socket} />
           <video
             ref={receivervideoref}
             className=" h-40  absolute bottom-0 left-0"

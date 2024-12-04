@@ -75,8 +75,20 @@ wss.on("connection", function connection(ws) {
         } else {
           console.warn("Unrecognized ICE Candidate source.");
         }
-      } else {
-        console.warn("Unrecognized message type:", message.type);
+      } else if (message.type === "textmessage") {
+        console.log(message.message);
+        receiverSocket?.send(
+          JSON.stringify({
+            type: "txt",
+            message: message.message,
+          })
+        );
+        senderSocket?.send(
+          JSON.stringify({
+            type: "txt",
+            message: message.message,
+          })
+        );
       }
     } catch (err) {
       console.error("Error processing message:", err);

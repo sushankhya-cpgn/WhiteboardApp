@@ -1,28 +1,31 @@
 import { useEffect, useState } from "react";
 import { FaAngleUp } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
-// import { io } from "socket.io-client";
 
-// const socket = io.connect("http://localhost:4000");
-
-function MessageBox() {
+function MessageBox({ socket }) {
   const [msgboxclick, setMsgboxclick] = useState(false);
   const [userMessage, setUserMessage] = useState("");
   const [receivedMsg, setReceivedMsg] = useState([]);
-  // function handleSendMessage() {
-  //   if (userMessage.trim() !== "") {
-  //     socket.emit("send_message", { message: userMessage });
-  //     setUserMessage("");
-  //   }
-  // }
-  // useEffect(() => {
-  //   socket.on("receive_message", (data) => {
-  //     setReceivedMsg((prevmsg) => [...prevmsg, data.message]);
-  //   });
-  //   return () => {
-  //     socket.off("receive_message");
-  //   };
-  // }, []);
+  function handleSendMessage() {
+    if (userMessage.trim() !== "") {
+      socket.send(
+        JSON.stringify({ type: "textmessage", message: userMessage })
+      );
+      setUserMessage("");
+    }
+  }
+  useEffect(() => {
+    if (!socket) {
+      return;
+    }
+    socket.onmessage = async (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === "txt") {
+        setReceivedMsg([...receivedMsg, message.message]);
+        console.log("message received", message.message);
+      }
+    };
+  }, [receivedMsg, socket]);
   const togglemsgbox = () => {
     setMsgboxclick((prev) => !prev);
   };
@@ -68,7 +71,7 @@ function MessageBox() {
             <button
               type="submit"
               className="bg-[#2663FF] text-white px-4 rounded-r-md"
-              // onClick={handleSendMessage}
+              onClick={handleSendMessage}
             >
               Send
             </button>
