@@ -2,14 +2,18 @@ import { useEffect, useState } from "react";
 import { FaAngleUp } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
 
-function MessageBox({ socket }) {
+function MessageBox({ socket, user }) {
   const [msgboxclick, setMsgboxclick] = useState(false);
   const [userMessage, setUserMessage] = useState("");
   const [receivedMsg, setReceivedMsg] = useState([]);
   function handleSendMessage() {
     if (userMessage.trim() !== "") {
-      socket.send(
-        JSON.stringify({ type: "textmessage", message: userMessage })
+      socket?.send(
+        JSON.stringify({
+          type: "textmessage",
+          user: user?.name,
+          message: userMessage,
+        })
       );
       setUserMessage("");
     }
@@ -21,8 +25,8 @@ function MessageBox({ socket }) {
     socket.onmessage = async (event) => {
       const message = JSON.parse(event.data);
       if (message.type === "txt") {
-        setReceivedMsg([...receivedMsg, message.message]);
-        console.log("message received", message.message);
+        setReceivedMsg([...receivedMsg, message.user + message.message]);
+        console.log(`message received from ${message.user}`, message.message);
       }
     };
   }, [receivedMsg, socket]);

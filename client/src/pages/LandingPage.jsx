@@ -60,6 +60,7 @@ function LandingPage() {
       roomId: e.target.value,
     });
     if (response) {
+      console.log(response.data.status);
       navigate("/receivestream");
     }
   }

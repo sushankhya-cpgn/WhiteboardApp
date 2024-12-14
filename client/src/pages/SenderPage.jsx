@@ -17,7 +17,6 @@ function SenderPage() {
   const { response, loading } = useFetch();
   const [socket, setSocket] = useState(null);
   const [pc, setPc] = useState(null);
-  const [txtmsg, setTxtmsg] = useState("");
   const videoref = useRef(null);
   const receivervideoref = useRef(null);
   const navigate = useNavigate();
@@ -39,6 +38,7 @@ function SenderPage() {
 
   useEffect(() => {
     const socket = new WebSocket("ws://127.0.0.1:8080");
+    // socketRef.current = socket;
     setSocket(() => socket);
     socket.onopen = () => {
       socket.send(
@@ -59,7 +59,10 @@ function SenderPage() {
     socket.onmessage = async (event) => {
       console.log("On message reached");
       const message = JSON.parse(event.data);
-      if (message.type === "createAnswer") {
+      if (message.type === "receiverReady") {
+        console.log("Receiver is ready, proceeding with connection.");
+        pc.onnegotiationneeded();
+      } else if (message.type === "createAnswer") {
         if (!pc) {
           console.log("no pc");
           return;
@@ -122,7 +125,7 @@ function SenderPage() {
           <Canvas activeTool={active} undo={undo} socket={socket}>
             {color}
           </Canvas>
-          <MessageBox socket={socket} />
+          <MessageBox socket={socket} user={user} />
           <video
             ref={receivervideoref}
             className=" h-40  absolute bottom-0 left-0"

@@ -1,12 +1,12 @@
 import { useRef, useState, useEffect } from "react";
 
-export function Canvas({ activeTool, children, socket, receivedpath }) {
+export function Canvas({ activeTool, children, socket }) {
   const canvasRef = useRef(null);
   let contextRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const points = useRef([]);
   const path = useRef([]);
-
+  const [receivedpath, setReceivedpath] = useState([]);
   useEffect(() => {
     const canvas = canvasRef.current;
     contextRef.current = canvas.getContext("2d");
@@ -23,10 +23,41 @@ export function Canvas({ activeTool, children, socket, receivedpath }) {
       window.removeEventListener("resize", resizeCanvas);
     };
   }, []);
-  // function drawreceived(){
-  //   contextRef.current.beginPath();
+  useEffect(() => {
+    if (!socket) {
+      return;
+    }
 
-  // }
+    socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === "drawingdata") {
+        setReceivedpath((prev) => [...prev, ...message.data]);
+      }
+    };
+
+    // This is where you can draw the received paths
+  }, [socket, setReceivedpath]);
+
+  useEffect(() => {
+    if (receivedpath.length > 0) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      ctx.lineCap = "round";
+      contextRef.current.lineWidth = 10;
+
+      receivedpath.forEach((points) => {
+        ctx.beginPath();
+        points.forEach((point, i) => {
+          if (i === 0) {
+            ctx.moveTo(point.x, point.y);
+          } else {
+            ctx.lineTo(point.x, point.y);
+          }
+        });
+        ctx.stroke();
+      });
+    }
+  }, [receivedpath]);
 
   function startDrawing(e) {
     setIsDrawing(true);
@@ -41,7 +72,7 @@ export function Canvas({ activeTool, children, socket, receivedpath }) {
     }
 
     points.current = [];
-    socket.send(
+    socket?.send(
       JSON.stringify({ type: "senderDrawingdata", data: path.current })
     );
     contextRef.current.beginPath();

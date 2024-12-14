@@ -28,11 +28,7 @@ wss.on("connection", function connection(ws) {
       } else if (message.type === "receiver") {
         receiverSocket = ws;
         console.log("Receiver socket registered.");
-      } else if (message.type === "senderDrawingdata") {
-        console.log(" path is", message.path);
-        receiverSocket?.send(
-          JSON.stringify({ type: "drawingdata", data: message.path })
-        );
+        senderSocket?.send(JSON.stringify({ type: "receiverReady" }));
       } else if (message.type === "createOffer") {
         console.log("createOffer Received:", message.sdp);
 
@@ -55,40 +51,40 @@ wss.on("connection", function connection(ws) {
         );
         console.log("Answer forwarded to sender.");
       } else if (message.type === "iceCandidate") {
-        console.log("ICE Candidate received:", message.candidate);
-        if (ws === senderSocket) {
-          console.log("Forwarding ICE Candidate to receiver.");
-          receiverSocket?.send(
-            JSON.stringify({
-              type: "iceCandidate",
-              candidate: message.candidate,
-            })
-          );
-        } else if (ws === receiverSocket) {
-          console.log("Forwarding ICE Candidate to sender.");
-          senderSocket?.send(
-            JSON.stringify({
-              type: "iceCandidate",
-              candidate: message.candidate,
-            })
-          );
-        } else {
-          console.warn("Unrecognized ICE Candidate source.");
+        if (message.type === "iceCandidate") {
+          if (ws === senderSocket) {
+            receiverSocket?.send(
+              JSON.stringify({
+                type: "iceCandidate",
+                candidate: message.candidate,
+              })
+            );
+          } else if (ws === receiverSocket) {
+            senderSocket?.send(
+              JSON.stringify({
+                type: "iceCandidate",
+                candidate: message.candidate,
+              })
+            );
+          }
         }
+      } else if (message.type === "senderDrawingdata") {
+        console.log("received");
+        console.log(message.data);
+        receiverSocket?.send(
+          JSON.stringify({ type: "drawingdata", data: message.data })
+        );
       } else if (message.type === "textmessage") {
         console.log(message.message);
-        receiverSocket?.send(
-          JSON.stringify({
-            type: "txt",
-            message: message.message,
-          })
-        );
-        senderSocket?.send(
-          JSON.stringify({
-            type: "txt",
-            message: message.message,
-          })
-        );
+        wss.clients.forEach((client) => {
+          client.send(
+            JSON.stringify({
+              type: "txt",
+              message: message.message,
+              user: message.user,
+            })
+          );
+        });
       }
     } catch (err) {
       console.error("Error processing message:", err);
@@ -96,6 +92,8 @@ wss.on("connection", function connection(ws) {
   });
 
   ws.on("close", () => {
+    if (ws === senderSocket) senderSocket = null;
+    if (ws === receiverSocket) receiverSocket = null;
     console.log("WebSocket connection closed.");
   });
 });
