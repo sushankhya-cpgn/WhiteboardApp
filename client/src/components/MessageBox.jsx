@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FaAngleUp } from "react-icons/fa";
 import { IoMdClose } from "react-icons/io";
+import { useSocket } from "../context/SocketProvider";
 
-function MessageBox({ socket, user }) {
+function MessageBox({ user }) {
   const [msgboxclick, setMsgboxclick] = useState(false);
   const [userMessage, setUserMessage] = useState("");
-  const [receivedMsg, setReceivedMsg] = useState([]);
+  // const [receivedMsg, setReceivedMsg] = useState([]);
+  const { socket, receivedMsg } = useSocket();
+
   function handleSendMessage() {
     if (userMessage.trim() !== "") {
       socket?.send(
@@ -18,18 +21,19 @@ function MessageBox({ socket, user }) {
       setUserMessage("");
     }
   }
-  useEffect(() => {
-    if (!socket) {
-      return;
-    }
-    socket.onmessage = async (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === "txt") {
-        setReceivedMsg([...receivedMsg, message.user + message.message]);
-        console.log(`message received from ${message.user}`, message.message);
-      }
-    };
-  }, [receivedMsg, socket]);
+  // useEffect(() => {
+  //   if (!socket) {
+  //     return;
+  //   }
+  //   socket.onmessage = async (event) => {
+  //     const message = JSON.parse(event.data);
+  //     console.log("message event messagebox", message.type);
+  //     if (message.type === "txt") {
+  //       setReceivedMsg([...receivedMsg, message.user + message.message]);
+  //       console.log(`message received from ${message.user}`, message.message);
+  //     }
+  //   };
+  // }, [receivedMsg, socket]);
   const togglemsgbox = () => {
     setMsgboxclick((prev) => !prev);
   };

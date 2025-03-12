@@ -7,17 +7,19 @@ import { Navbar } from "../components/Navbar";
 import UserContext from "../context/userContext";
 import { useNavigate } from "react-router";
 import useFetch from "../utils/useFetch";
+import { useSocket } from "../context/SocketProvider";
 
 export const Receiver = () => {
   const [active, setActive] = useState(0);
   const [color, setColor] = useState("#000000");
   const [undo, setUndo] = useState(false);
-  const [socket, setSocket] = useState(null);
+  // const [socket, setSocket] = useState(null);
   const { user, login } = useContext(UserContext);
   const videoRef = useRef(null);
   const receivervideoref = useRef(null);
   const navigate = useNavigate();
   const { response, loading } = useFetch();
+  const { socket, createReceiverSocket, startReceiving } = useSocket();
 
   useEffect(() => {
     if (!user && !loading) {
@@ -35,52 +37,11 @@ export const Receiver = () => {
   }, [response, login]);
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8080");
-    setSocket(() => socket);
-    // socketRef.current = socket;
-    socket.onopen = () => {
-      socket?.send(
-        JSON.stringify({
-          type: "receiver",
-        })
-      );
-    };
-    startReceiving(socket);
-
-    return () => {
-      socket.close();
-    };
+    if (!socket) {
+      createReceiverSocket();
+    }
+    startReceiving(videoRef, receivervideoref);
   }, []);
-
-  function startReceiving(socket) {
-    const pc = new RTCPeerConnection();
-
-    pc.ontrack = (event) => {
-      videoRef.current.srcObject = new MediaStream([event.track]);
-      videoRef.current.muted = true;
-      videoRef.current.play();
-    };
-
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === "createOffer") {
-        pc.setRemoteDescription(message.sdp).then(() => {
-          pc.createAnswer().then((answer) => {
-            pc.setLocalDescription(answer);
-            socket?.send(
-              JSON.stringify({
-                type: "createAnswer",
-                sdp: answer,
-              })
-            );
-          });
-        });
-      } else if (message.type === "iceCandidate") {
-        pc.addIceCandidate(message.candidate);
-      }
-    };
-    getCameraStreamAndSend(pc, receivervideoref);
-  }
 
   return (
     <div className="flex flex-col bg-gray-100 h-screen">
@@ -100,9 +61,7 @@ export const Receiver = () => {
 
         {/* Drawing Canvas */}
         <section className="flex-1 bg-gray-50 ">
-          <Canvas activeTool={active} undo={undo} socket={socket}>
-            {color}
-          </Canvas>
+          <Canvas activeTool={active} undo={undo} socket={socket} />
           <MessageBox socket={socket} user={user} />
           <video
             ref={videoRef}

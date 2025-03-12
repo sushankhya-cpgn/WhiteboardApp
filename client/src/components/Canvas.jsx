@@ -1,12 +1,13 @@
 import { useRef, useState, useEffect } from "react";
+import { useSocket } from "../context/SocketProvider";
 
-export function Canvas({ activeTool, children, socket }) {
+export function Canvas({ activeTool, children }) {
   const canvasRef = useRef(null);
   let contextRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const points = useRef([]);
   const path = useRef([]);
-  const [receivedpath, setReceivedpath] = useState([]);
+  const { socket, receivedpath } = useSocket();
   useEffect(() => {
     const canvas = canvasRef.current;
     contextRef.current = canvas.getContext("2d");
@@ -23,20 +24,31 @@ export function Canvas({ activeTool, children, socket }) {
       window.removeEventListener("resize", resizeCanvas);
     };
   }, []);
-  useEffect(() => {
-    if (!socket) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (!socket) {
+  //     console.log("no socket");
+  //     return;
+  //   }
 
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === "drawingdata") {
-        setReceivedpath((prev) => [...prev, ...message.data]);
-      }
-    };
+  //   console.log("yes scoket");
+  //   socket.onmessage = async (event) => {
+  //     const message = JSON.parse(event.data);
+  //     console.log("message event canvas", message.type);
+  //     console.log("drawingdata event", event);
+  //     if (message.type === "drawingdata") {
+  //       console.log("drawingdata received");
+  //       setReceivedpath((prev) => [...prev, ...message.data]);
+  //     }
+  //   };
 
-    // This is where you can draw the received paths
-  }, [socket, setReceivedpath]);
+  //   // This is where you can draw the received paths
+  // }, [socket, setReceivedpath]);
+
+  // useEffect(() => {
+  //   if (!socket) {
+  //     return;
+  //   }
+  // }, [socket]);
 
   useEffect(() => {
     if (receivedpath.length > 0) {

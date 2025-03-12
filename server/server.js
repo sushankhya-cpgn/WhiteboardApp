@@ -74,6 +74,9 @@ wss.on("connection", function connection(ws) {
         receiverSocket?.send(
           JSON.stringify({ type: "drawingdata", data: message.data })
         );
+        senderSocket?.send(
+          JSON.stringify({ type: "drawingdata", data: message.data })
+        );
       } else if (message.type === "textmessage") {
         console.log(message.message);
         wss.clients.forEach((client) => {
